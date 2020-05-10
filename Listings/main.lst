@@ -1,0 +1,113 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              05/07/2020 13:40:10 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <reg51.h>
+   2          
+   3          void LCD_Init (void);
+   4          void delay(unsigned int count);
+   5          void LCD_Command (unsigned char cmd);
+   6          void LCD_Char (unsigned char char_data);
+   7          void LCD_String (unsigned char *str);
+   8          void LCD_String_xy (char row, char pos, char *str);
+   9          
+  10          sfr lcd_data_port=0x90;         /* P1 port as data port */
+  11          sbit rs=P2^0;                   /* Register select pin */
+  12          sbit rw=P2^1;                   /* Read/Write pin */
+  13          sbit en=P2^2;                   /* Enable pin */
+  14          
+  15          
+  16          void main()
+  17          {
+  18   1      
+  19   1              LCD_Init();             /* initialization of LCD*/
+  20   1      
+  21   1              LCD_String("ElectronicWINGS");  /* write string on 1st line of LCD*/
+  22   1              LCD_Command(0xC0);
+  23   1              LCD_String("Hello World");  /*write string on 2nd line*/
+  24   1      
+  25   1              while(1);               /* Infinite loop. */
+  26   1              
+  27   1      }
+  28          
+  29          void LCD_Init (void)            /* LCD Initialize function */
+  30          {       
+  31   1              delay(20);              /* LCD Power ON Initialization time >15ms */
+  32   1              LCD_Command (0x38);     /* Initialization of 16X2 LCD in 8bit mode */
+  33   1              LCD_Command (0x0C);     /* Display ON Cursor OFF */
+  34   1              LCD_Command (0x06);     /* Auto Increment cursor */
+  35   1              LCD_Command (0x01);     /* clear display */
+  36   1              LCD_Command (0x80);     /* cursor at home position */
+  37   1      }
+  38          
+  39          void delay(unsigned int count)  /* Function to provide delay Approx 1ms */
+  40          {
+  41   1              int i,j;
+  42   1              for(i=0;i<count;i++)
+  43   1              for(j=0;j<112;j++);
+  44   1      }
+  45          
+  46          void LCD_Command (unsigned char cmd)  /* LCD16x2 command funtion */
+  47          {
+  48   1              lcd_data_port= cmd;
+  49   1              rs=0;                   /* command reg. */
+  50   1              rw=0;                   /* Write operation */
+  51   1              en=1; 
+  52   1              delay(1);
+  53   1              en=0;
+  54   1              delay(5);
+C51 COMPILER V9.60.0.0   MAIN                                                              05/07/2020 13:40:10 PAGE 2   
+
+  55   1      }
+  56          
+  57          void LCD_Char (unsigned char char_data)  /* LCD data write function */
+  58          {
+  59   1              lcd_data_port=char_data;
+  60   1              rs=1;                   /* Data reg.*/
+  61   1              rw=0;                   /* Write operation*/
+  62   1              en=1;                                   
+  63   1              delay(1);
+  64   1              en=0;
+  65   1              delay(5);
+  66   1      }
+  67          
+  68          void LCD_String (unsigned char *str) /* Send string to LCD function */
+  69          {
+  70   1              int i;
+  71   1              for(i=0;str[i]!=0;i++)  /* Send each char of string till the NULL */
+  72   1              {
+  73   2                      LCD_Char (str[i]);  /* Call LCD data write */
+  74   2              }
+  75   1      }
+  76          
+  77          void LCD_String_xy (char row, char pos, char *str)  /* Send string to LCD function */
+  78          {
+  79   1              if (row == 0)
+  80   1              LCD_Command((pos & 0x0F)|0x80);
+  81   1              else if (row == 1)
+  82   1              LCD_Command((pos & 0x0F)|0xC0);
+  83   1              LCD_String(str);        /* Call LCD string function */
+  84   1      }
+  85          
+  86          
+  87          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    228    ----
+   CONSTANT SIZE    =     28    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----      10
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
