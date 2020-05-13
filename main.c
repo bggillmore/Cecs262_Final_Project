@@ -14,30 +14,38 @@ sbit rw=P2^1;			/* Read/Write pin */
 sbit en=P2^2;			/* Enable pin */
 
 //sbits for lights
-sbit ewG = P3^0;
-sbit ewY = P3^1;
-sbit ewR = P3^2;
-sbit ewG = P3^3;
-sbit ewY = P3^4;
-sbit ewR = P3^5;
+sbit ewG = P0^0;
+sbit ewY = P0^1;
+sbit ewR = P0^2;
+sbit nsG = P0^3;
+sbit nsY = P0^4;
+sbit nsR = P0^5;
 
+
+//#define TESTING
 unsigned char walkState = 0;
+unsigned char trafficSign[] = "Heavy traffic on 405";
+
 void main()
 {
-	unsigned char[] trafficSign = "Heavy traffic on 405";
 	unsigned char state = 0;
+	IE = 0x81; //enable external interupt P3.2
+	LCD_Init();
+	
 	while(1){
-		ewG = 0;
-		ewY = 0;
-		ewR = 0;
-		ewG = 0;
-		ewY = 0;
-		ewR = 0;
+		ewG = 1;
+		ewY = 1;
+		ewR = 1;
+		ewG = 1;
+		ewY = 1;
+		ewR = 1;
 		switch(state){
 			case 0x00:
 			{
-				ewG = 1;
-				nsR = 1;
+				nsY = 1;
+				ewR = 1;
+				ewG = 0;
+				nsR = 0;
 				//start Counters
 				
 				if(walkState != 0){
@@ -53,24 +61,25 @@ void main()
 			}
 			case 0x01:
 			{
-				ewY = 1;
-				nsR = 1;
+				ewG = 1;
+				ewY = 0;
 				//start Counters
 				if(walkState == 0xff){
 					//flash
-					Counter(0x06, walkState);
+					Counter(0x03, walkState);
 					walkState = 0;
 				}
 				else{
 					//display road sign
-					Counter(0x06, 0x00);
+					Counter(0x03, 0x00);
 				}
 				state++;
 			}
 			case 0x02:
 			{
-				nsG = 1;
-				ewR = 1;
+				ewY = 1;
+				nsG = 0;
+				ewR = 0;
 				//start Counters
 				
 				if(walkState != 0){
@@ -86,32 +95,27 @@ void main()
 			}
 			case 0x03:
 			{
-				nsY = 1;
-				ewR = 1;
+				nsG = 1;
+				nsY = 0;
+				ewR = 0;
 				//start Counters
 				if(walkState == 0xff){
 					//flash
-					Counter(0x06, walkState);
+					Counter(0x03, walkState);
 					walkState = 0;
 				}
 				else{
 					//display road sign
-					Counter(0x06, 0x00);
+					Counter(0x03, 0x00);
 				}
 				state = 0;
 			}
 		}
 	}
-	
-	/*
-	LCD_Init();	
+}
 
-	LCD_String("ElectronicWINGS"); 
-	LCD_Command(0xC0);
-	LCD_String("Hello World"); 
-
-	while(1);
-	*/
+void walk(void) interrupt 0{
+	walkState = 0x01;
 }
 
 void Counter(unsigned short int lengthSeconds, unsigned char walkState)
@@ -121,43 +125,64 @@ void Counter(unsigned short int lengthSeconds, unsigned char walkState)
 		if(walkState == 0x01){
 			//count down
 			counter = 0;
+			//send byte
+			//printByte(lengthSeconds - (counter/1000));
+			LCD_Command (0x01);	//clear display
+			LCD_Command (0x80); //move cursor to home
+			LCD_String("print counter");
 			while(counter < lengthSeconds*1000)
 			{
-				//send byte
-				//printByte(lengthSeconds - (counter/1000));
 				//counter
 				TMOD = 0x01;
-				TL0 = ;
-				TH0 = ;
-				TR0 = 1
+				TL0 = 0x66;
+				TH0 = 0xFC;
+				TR0 = 1;
 				while(~TF0);
 				counter++;
 				TF0 = 0;
-			
+			}
+			TR0 = 0;
 		}
 		else{
 			//flash
-			//flash led on-off
+			counter = 0;
+			//flash lcd on-off
+			LCD_Command (0x01);	//clear display
+			LCD_Command (0x80); //move cursor to home
+			LCD_String("flash lcd");
+			while(counter < lengthSeconds*1000)
+			{
+				//counter
+				TMOD = 0x01;
+				TL0 = 0x66;
+				TH0 = 0xFC;
+				TR0 = 1;
+				while(~TF0);
+				counter++;
+				TF0 = 0;
+			}
+			TR0 = 0;
+		}
+	}
+	else{
+		
+		counter = 0;
+		//show road sign
+		LCD_Command (0x01);	//clear display
+		LCD_Command (0x80); //move cursor to home
+		LCD_String("show sign");
+		while(counter < lengthSeconds*1000)
+		{
 			//counter
 			TMOD = 0x01;
-			TL0 = ;
-			TH0 = ;
-			TR0 = 1
+			TL0 = 0x66;
+			TH0 = 0xFC;
+			TR0 = 1;
 			while(~TF0);
 			counter++;
 			TF0 = 0;
 		}
-	}
-	else{
-		//show road sign
-		//counter
-		TMOD = 0x01;
-		TL0 = ;
-		TH0 = ;
-		TR0 = 1
-		while(~TF0);
-		counter++;
-		TF0 = 0;
+		TR0 = 0;
 	}
 }
 
