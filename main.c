@@ -201,7 +201,7 @@ void Counter(unsigned short int lengthSeconds, unsigned char walkState)
 void LCD_Init (void)
 {	
 	delay(20);		//Wait for power
-	lcdBacklight = 0;
+	lcdBacklight = 0; //set lcd back light to full brightness
 	LCD_Command (0x38);	//8bit mode
 	LCD_Command (0x0C);	//display cursor off
 	LCD_Command (0x06);	//auto increment cursor
